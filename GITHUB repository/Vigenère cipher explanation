@@ -1,0 +1,283 @@
+# Function that removes accented and special characters
+def remove_special_characters(text):
+
+    # Variable that will store the cleaned text
+    result = ""
+
+    # Loop through every character in the text
+    for char in text:
+
+        # Get the ASCII/Unicode code of the character
+        code = ord(char)
+
+        # Replace accented A characters with A
+        if (0xC0 <= code <= 0xC5) or (0xE0 <= code <= 0xE5):
+            char = 'A'
+
+        # Replace Æ / æ with AE
+        elif code in (0xC6, 0xE6):
+            result += 'AE'
+
+        # Replace Ç / ç with C
+        elif code in (0xC7, 0xE7):
+            char = 'C'
+
+        # Replace accented E characters with E
+        elif (0xC8 <= code <= 0xCB) or (0xE8 <= code <= 0xEB):
+            char = 'E'
+
+        # Replace accented I characters with I
+        elif (0xCC <= code <= 0xCF) or (0xEC <= code <= 0xEF):
+            char = 'I'
+
+        # Replace Ð with D
+        elif code == 0xD0:
+            char = 'D'
+
+        # Replace Ñ / ñ with N
+        elif code in (0xD1, 0xF1):
+            char = 'N'
+
+        # Replace accented O characters with O
+        elif (0xD2 <= code <= 0xD6) or (0xF2 <= code <= 0xF6):
+            char = 'O'
+
+        # Replace accented U characters with U
+        elif (0xD9 <= code <= 0xDC) or (0xF9 <= code <= 0xFC):
+            char = 'U'
+
+        # Replace accented Y characters with Y
+        elif code in (0xDD, 0xFD, 0xFF):
+            char = 'Y'
+
+        # Keep only letters and spaces
+        if ('A' <= char <= 'Z') or ('a' <= char <= 'z') or (char == ' '):
+            result += char
+
+    # Return the cleaned text
+    return result
+
+
+# Function that encrypts text using the Vigenère cipher
+def vigenere_encrypt(text, key):
+
+    # Variable that will store the encrypted text
+    result = ""
+
+    # Position in the key
+    key_index = 0
+
+    # Convert the key to uppercase
+    key = key.upper()
+
+    # Process each character in the text
+    for letter in text:
+
+        # Encrypt only alphabetic characters
+        if letter.isalpha():
+
+            # ASCII value of the current letter
+            text_value = ord(letter)
+
+            # ASCII value of A
+            value_A = ord('A')
+
+            # Convert letter to position between 0 and 25
+            text_position = text_value - value_A
+
+            # Convert key letter to position between 0 and 25
+            key_position = ord(key[key_index % len(key)]) - value_A
+
+            # Apply Vigenère encryption formula
+            encrypted_position = (text_position + key_position) % 26
+
+            # Convert result back to a character
+            encrypted_letter = chr(encrypted_position + value_A)
+
+            # Add encrypted letter to result
+            result += encrypted_letter
+
+            # Move to the next key character
+            key_index += 1
+
+        else:
+            # Keep non-alphabetic characters unchanged
+            result += letter
+
+    # Return encrypted text
+    return result
+
+
+# Function that decrypts text using the Vigenère cipher
+def vigenere_decrypt(text, key):
+
+    # Variable that will store decrypted text
+    result = ""
+
+    # Position in the key
+    key_index = 0
+
+    # Convert key to uppercase
+    key = key.upper()
+
+    # Process each character
+    for letter in text:
+
+        # Decrypt only letters
+        if letter.isalpha():
+
+            # ASCII value of current letter
+            text_value = ord(letter)
+
+            # ASCII value of A
+            value_A = ord('A')
+
+            # Letter position (0–25)
+            text_position = text_value - value_A
+
+            # Key position (0–25)
+            key_position = ord(key[key_index % len(key)]) - value_A
+
+            # Apply Vigenère decryption formula
+            decrypted_position = (text_position - key_position) % 26
+
+            # Convert position back to a letter
+            decrypted_letter = chr(decrypted_position + value_A)
+
+            # Add decrypted letter to the result
+            result += decrypted_letter
+
+            # Move to next key character
+            key_index += 1
+
+        else:
+            # Keep non-alphabetic characters unchanged
+            result += letter
+
+    # Return decrypted text
+    return result
+
+
+# Ask the user which operation to perform
+choice = input("Choose an operation (encrypt/decrypt): ").lower()
+
+# Ask for the file name
+file_name = input("Enter the file name: ")
+
+# Ask for the Vigenère key
+key_input = input("Enter your key (word): ")
+
+# Convert key to uppercase
+key = key_input.upper()
+
+try:
+
+    # Open the input file in read mode
+    with open(file_name, "r") as file:
+
+        # Read the content of the file
+        content = file.read()
+
+        # Display the file content
+        print("\nFile content:")
+        print(content)
+
+    # Convert content to uppercase
+    content = content.upper()
+
+    # Remove special characters
+    modified_text = remove_special_characters(content)
+
+    # Check user's choice
+    if choice == "encrypt":
+
+        # Encrypt the text
+        result = vigenere_encrypt(modified_text, key)
+
+        # Display encrypted text
+        print("\nEncrypted text:")
+        print(result)
+
+    elif choice == "decrypt":
+
+        # Decrypt the text
+        result = vigenere_decrypt(modified_text, key)
+
+        # Display decrypted text
+        print("\nDecrypted text:")
+        print(result)
+
+    else:
+
+        # Display error if choice is invalid
+        print("Invalid operation.")
+        exit()
+
+    # Ask whether the user already has an output file
+    save_choice = input("\nDo you have an output file? (Yes/No): ").lower()
+
+    # If user has a file
+    if save_choice == "yes":
+
+        # Ask for output file name
+        output_file = input("What is the file name? ")
+
+    else:
+
+        # Create a default file name
+        output_file = "result.txt"
+
+        # Inform the user
+        print(f"File automatically created: {output_file}")
+
+    # Create/open output file
+    with open(output_file, "w") as output:
+
+        # Write the final result
+        output.write(result)
+
+        # Add two line breaks
+        output.write("\n\n")
+
+        # Reset key index
+        key_index = 0
+
+        # Generate a detailed table of letters
+        for original, processed in zip(modified_text, result):
+
+            # If original character is a letter
+            if original.isalpha():
+
+                # Get corresponding key character
+                current_key = key[key_index % len(key)]
+
+                # Move to next key character
+                key_index += 1
+
+            else:
+
+                # Leave blank for non-letter characters
+                current_key = " "
+
+            # Write original letter, key letter, and result letter
+            output.write(
+                f"{original} | {current_key} | {processed}\n"
+            )
+
+    # Display success message
+    print("Result successfully saved!")
+
+# If the file does not exist
+except FileNotFoundError:
+
+    # Inform the user
+    print(f"The file '{file_name}' does not exist. Creating it...")
+
+    # Create the missing file
+    with open(file_name, "w") as file:
+
+        # Confirm creation
+        print(f"File '{file_name}' created.")
+
+        # Initialize empty content
+        content = ""
